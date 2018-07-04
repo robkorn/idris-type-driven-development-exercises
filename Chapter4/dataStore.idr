@@ -56,8 +56,10 @@ searchForEntry "" ds = Just ("", ds)
 searchForEntry str ds = let storeItems = items ds
                             filteredPair = Data.Vect.filter (isInfixOf str) storeItems
                             filteredItems = snd filteredPair
-                            resultString = foldl (\acc, x => acc ++ x ++ "\n") "" filteredItems in
-                              Just (resultString, ds)
+                            resultString = foldl (\acc, x => acc ++ getIndex x storeItems ++ ": " ++ x ++ "\n") "" filteredItems in
+                            Just (resultString, ds)
+                        where getIndex : String -> Vect m String -> String
+                              getIndex x storeItems = fromMaybe "0" $ (map show (map finToNat $ elemIndex x storeItems))
 
 processInput : DataStore -> String -> Maybe (String, DataStore)
 processInput ds inp = case parse inp of

@@ -73,11 +73,11 @@ parseFile : (r : File) -> IO (n : Nat ** Vect n String)
 parseFile f = do isEOF <- fEOF f
                  case isEOF of
                       True => pure $ MkDPair _ []
-                      False => do line <- fGetLine f
-                                  case line of
-                                      (Left l) => pure $ MkDPair _ []
-                                      (Right r) => do MkDPair _ xs <- parseFile f
-                                                      pure (MkDPair _ (r :: xs))
+                      False => do Right l <- fGetLine f | Left err => pure (_ ** [])
+                                  MkDPair _ xs <- parseFile f
+                                  pure (MkDPair _ (l :: xs))
+
+
 
 readVectFile : (filename : String) -> IO (n ** Vect n String)
 readVectFile filename = do Right f <- openFile "ras.txt" Read | Left err => pure (MkDPair _ [])

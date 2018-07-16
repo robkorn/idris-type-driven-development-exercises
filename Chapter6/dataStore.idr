@@ -33,6 +33,7 @@ record DataStore where
 data Command : Schema -> Type where
      Add : SchemaType schema -> Command schema
      Get : Integer -> Command schema
+     SetSchema : (newschema : Schema) -> Command schema
      Quit : Command schema
 
 
@@ -51,15 +52,37 @@ sumInputs tot inp = let val = cast inp in
              else let newVal = tot + val in
                       Just ("Subtotal: " ++ show newVal ++ "\n", newVal)
 
+parsePrefix : (schema : Schema) -> String -> Maybe (SchemaType schema, String)
+parsePrefix SString inp = getQuoted (unpack inp)
+  where
+    getQuoted : List Char -> Maybe (String, String)
+    getQuoted ('"' :: xs) = case span (/= '"') xs of
+                                 (quoted, '"' :: rest) => Just (pack quoted, ltrim (pack rest))
+                                 _ => Nothing
+    getQuoted _ = Nothing
+parsePrefix SInt inp = case span isDigit inp of
+                            ("", rest) => Nothing
+                            (num, rest) => Just (cast num, ltrim rest)
+parsePrefix (x .+. y) inp = do l <- parsePrefix x inp
+                               r <- parsePrefix y $ snd l
+                               pure ((fst l, fst r), snd r)
+-- parsePrefix (x .+. y) inp = case parsePrefix x inp of
+--                                   Nothing => Nothing
+--                                   Just (lval, inp') => case parsePrefix y inp' of
+--                                                            Nothing => Nothing
+--                                                            Just (rval, inp'') => Just ((lval, rval), inp'')
+
 parseBySchema : (schema : Schema) -> (str : String) -> Maybe $ SchemaType schema
+parseBySchema schema inp = case parsePrefix schema inp of
+                                -- Just (res,  "") => Just res
+                                Just _ => Nothing
+                                Nothing => Nothing
 
 parseCommand : (schema : Schema) -> (cmd : String) -> (args : String) -> Maybe (Command schema)
 parseCommand schema "add" str = case parseBySchema schema str of
                                      Nothing => Nothing
                                      Just r => Just (Add r)
 parseCommand schema "get" val = if all isDigit (unpack val) then Just (Get (cast val)) else Nothing
--- parseCommand schema "search" str = Just (Search str)
--- parseCommand schema "size" "" = Just Size
 parseCommand schema "quit" "" = Just Quit
 parseCommand schema _ args = Nothing
 
@@ -77,16 +100,6 @@ getEntry ind ds = let storeItems = items ds in
                       (case (integerToFin ind (size ds)) of
                             Nothing => Just ("Out of bounds \n", ds)
                             (Just id) => Just (display (index id storeItems) ++ "\n", ds))
-
--- searchForEntry : (str : String) -> (ds : DataStore) -> Maybe (String, DataStore)
--- searchForEntry "" ds = Just ("", ds)
--- searchForEntry str ds = let storeItems = items ds
---                             filteredPair = Data.Vect.filter (isInfixOf str) storeItems
---                             filteredItems = snd filteredPair
---                             resultString = foldl (\acc, x => acc ++ getIndex x storeItems ++ ": " ++ x ++ "\n") "" filteredItems in
---                             Just (resultString, ds)
---                         where getIndex : String -> Vect m String -> String
---                               getIndex x storeItems = fromMaybe "0" $ (map show (map finToNat $ elemIndex x storeItems))
 
 processInput : DataStore -> String -> Maybe (String, DataStore)
 processInput ds inp = case parse (schema ds) inp of

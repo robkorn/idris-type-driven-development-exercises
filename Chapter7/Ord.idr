@@ -54,7 +54,7 @@ Eq Shape where
 getArea : Shape -> Double
 getArea (Triangle x y) = (x * y) / 2
 getArea (Rectangle x y) = x * y
-getArea (Circle r) = 2 * pi * r
+getArea (Circle r) = pi * r * r
 
 Ord Shape where
   compare x y = let sa1 = getArea x
@@ -62,6 +62,5 @@ Ord Shape where
                     in compare sa1 sa2
 
 testShapes : List Shape
-testShapes = [Circle 3, Triangle 3 9, Rectangle 2 6, Circle 4,
-Rectangle 2 7]
+testShapes = [Circle 3, Triangle 3 9, Rectangle 2 6, Circle 4, Rectangle 2 7]
 

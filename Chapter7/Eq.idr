@@ -20,4 +20,3 @@ occurances item (x :: xs) = case x == item of
                                  False => occurances item xs
                                  True => 1 + occurances item xs
 
-

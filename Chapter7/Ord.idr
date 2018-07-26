@@ -17,6 +17,9 @@ Ord Album where
                                                                d_y => d_y
                                                     d_a => d_a
 
+Show Album where
+  show (MkAlbum artist title year) = title ++ " by " ++ artist ++ " (Released on: " ++ show year ++ ")"
+
 
 help : Album
 help = MkAlbum "The Beatles" "Help" 1965

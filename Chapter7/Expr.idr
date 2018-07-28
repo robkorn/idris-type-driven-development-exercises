@@ -32,3 +32,18 @@ eval (Mul x y) = eval x * eval y
 -- Ex 7.2 #3
 (Neg num, Integral num) => Cast (Expr num) num where
   cast orig = eval orig
+
+-- Ex 7.3 #1
+Functor Expr where
+  map func (Val x) = Val (func x)
+  map func (Add x y) = Add (map func x) (map func y)
+  map func (Sub x y) = Sub (map func x) (map func y)
+  map func (Mul x y) = Mul (map func x) (map func y)
+
+-- Ex 7.3 #2
+data MyVect : (size : Nat) -> (ty : Type) -> Type where
+     Nil : MyVect Z ty
+     (::) : ty -> MyVect size ty -> MyVect (S size) ty
+
+Eq ty => Eq (MyVect n ty) where
+  (==) x y = ?Eq_rhs_1

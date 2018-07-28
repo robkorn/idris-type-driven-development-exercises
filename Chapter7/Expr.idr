@@ -41,9 +41,17 @@ Functor Expr where
   map func (Mul x y) = Mul (map func x) (map func y)
 
 -- Ex 7.3 #2
-data MyVect : (size : Nat) -> (ty : Type) -> Type where
-     Nil : MyVect Z ty
-     (::) : ty -> MyVect size ty -> MyVect (S size) ty
+data Vect : (size : Nat) -> (ty : Type) -> Type where
+     Nil : Vect Z ty
+     (::) : ty -> Vect size ty -> Vect (S size) ty
 
-Eq ty => Eq (MyVect n ty) where
-  (==) x y = ?Eq_rhs_1
+Eq ty => Eq (Vect n ty) where
+  (==) [] [] = True
+  (==) (x :: z) (y :: w) = x == y && z == w
+
+Foldable (Vect n) where
+  foldr func acc [] = acc
+  foldr func acc (x :: xs) = func x (foldr func acc xs)
+  foldl func acc [] = acc
+  foldl func acc (x :: xs) = func (foldl func acc xs) x
+

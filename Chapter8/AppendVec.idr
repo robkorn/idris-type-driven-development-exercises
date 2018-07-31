@@ -24,4 +24,14 @@ myPlusCommutes j@(S k) m = let p = myPlusCommutes k m in
                            rewrite p in rewrite (plusSuccRightSucc m k) in Refl
 
 -- Ex 8.2 #2
+reverseProof_Nil : Vect n1 a -> Vect (plus n1 0) a
+reverseProof_Nil {n1} xs = rewrite plusZeroRightNeutral n1 in xs
 
+reverseProof_xs : Vect ((S n1) + len) a -> Vect (plus n1 (S len)) a
+reverseProof_xs {n1} {len} xs = rewrite sym (plusSuccRightSucc n1 len) in xs
+
+myReverse : Vect n a -> Vect n a
+myReverse xs = reverse' [] xs
+  where reverse' : Vect n a -> Vect m a -> Vect (n + m) a
+        reverse' acc [] = reverseProof_Nil acc
+        reverse' acc (x :: ys) = reverseProof_xs (reverse' (x :: acc) ys)

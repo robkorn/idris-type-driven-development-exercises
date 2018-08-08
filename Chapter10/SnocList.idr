@@ -38,3 +38,15 @@ myReverse : List a -> List a
 myReverse xs with (snocList xs)
   myReverse [] | Empty = []
   myReverse (ys ++ [x]) | (Snoc rec) = x :: myReverse ys | rec
+
+
+isSuffix : Eq a => List a -> List a -> Bool
+isSuffix xs ys with (snocList xs)
+  isSuffix [] ys | Empty = True
+  isSuffix (zs ++ [z]) ys | (Snoc zsrec) with (snocList ys)
+    isSuffix (zs ++ [z]) [] | (Snoc zsrec) | Empty = False
+    isSuffix (zs ++ [z]) (ys ++ [y]) | (Snoc zsrec) | (Snoc ysrec) = case z == y of
+                                                                          False => False
+                                                                          True => isSuffix zs ys | zsrec | ysrec
+
+

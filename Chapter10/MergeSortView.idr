@@ -2,6 +2,9 @@
 module MergeSortView
 
 import Data.List.Views
+import Data.Nat.Views
+import Data.Vect
+import Data.Vect.Views
 
 mergeSort : Ord a => List a -> List a
 mergeSort xs with (splitRec xs)
@@ -11,6 +14,7 @@ mergeSort xs with (splitRec xs)
 
 
 -- 10.2 Ex # 1
+total
 equalSuffix : Eq a => List a -> List a -> List a
 equalSuffix xs ys with (snocList xs)
   equalSuffix [] ys | Empty = []
@@ -20,4 +24,19 @@ equalSuffix xs ys with (snocList xs)
                                                                        False => []
                                                                        True => equalSuffix zs xs | zsrec | xsrec ++ [x]
 
+-- 10.2 Ex # 2
+total
+vmergeSort : Ord a => Vect n a -> Vect n a
+vmergeSort xs with (splitRec xs)
+  vmergeSort [] | SplitRecNil = []
+  vmergeSort [x] | SplitRecOne = [x]
+  vmergeSort (lefts ++ rights) | (SplitRecPair lrec rrec) = merge (vmergeSort lefts | lrec) (vmergeSort rights | rrec)
+
+-- 10.2 Ex # 3
+total
+toBinary : Nat -> String
+toBinary k with (halfRec k)
+  toBinary Z | HalfRecZ = ""
+  toBinary (n + n) | (HalfRecEven rec) = toBinary n | rec ++ "0"
+  toBinary (S (n + n)) | (HalfRecOdd rec) = toBinary n | rec ++ "1"
 

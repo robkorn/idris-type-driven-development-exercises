@@ -1,6 +1,7 @@
 
 module InfList
 
+
 data InfList : Type -> Type where
      (::) : (value : elem) -> Inf (InfList elem) -> InfList elem
 %name InfList xs, ys, za

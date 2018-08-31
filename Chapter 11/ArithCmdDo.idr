@@ -1,13 +1,16 @@
 
 module ArithCmdDo
 
+%default total
 
 data Input = Answer Int | QuitCmd
 
-public export
 data Command : Type -> Type where
      PutStr : String -> Command ()
      GetLine : Command String
+    -- Ex 11.3 # 2
+     ReadFile : String -> Command (Either FileError String)
+     WriteFile : (filePath : String) -> (content : String) -> Command (Either FileError ())
 
      Pure : ty -> Command ty
      Bind : Command a -> (a -> Command b) -> Command b
@@ -16,11 +19,19 @@ data ConsoleIO : Type -> Type where
      Quit : a -> ConsoleIO a
      Do : Command a -> (a -> Inf (ConsoleIO b)) -> ConsoleIO b
 
+data ShellInp : Type where
+     Cat : String -> ShellInp
+     Copy : (source : String) -> (destination : String) -> ShellInp
+     Invalid : ShellInp
+     Exit : ShellInp
+
 data Fuel = Empty | More (Lazy Fuel)
 
 runCommand : Command a -> IO a
 runCommand (PutStr x) = putStr x
 runCommand GetLine = getLine
+runCommand (ReadFile fp) = readFile fp
+runCommand (WriteFile fp c) = writeFile fp c
 runCommand (Pure x) = pure x
 runCommand (Bind x f) = do res <- runCommand x
                            runCommand (f res)
@@ -69,5 +80,37 @@ mutual
                                                               else wrong ns (n1 * n2) score qNum
                                               QuitCmd => Quit score
 
+partial
 startQuiz : IO (Maybe Nat)
 startQuiz = run forever $ quiz [1..] 0 0
+
+
+-- Ex 11.3 # 3
+readShellInput : (prompt : String) -> Command ShellInp
+readShellInput prompt = do PutStr prompt
+                           answer <- GetLine
+                           case words answer of
+                                ["cat", fp] => Pure $ Cat fp
+                                ["copy", orgin, dest] => Pure $ Copy orgin dest
+                                ["exit"] => Pure $ Exit
+                                _ => Pure $ Invalid
+
+myShell : ConsoleIO String
+myShell = do input <- readShellInput "\nmyShell -TM-: "
+             case input of
+                  (Cat x) => do content <- ReadFile x
+                                case content of
+                                    (Left l) => do PutStr "File Read Error\n"
+                                                   myShell
+                                    (Right r) => PutStr r >>= \_ => myShell
+                  (Copy source destination) => do content <- ReadFile source
+                                                  case content of
+                                                      (Left l) => PutStr "File Read Error\n" >>= \_ => myShell
+                                                      (Right r) => WriteFile destination r >>= \_ => myShell
+                  Invalid => PutStr "Please enter a valid command.\n" >>= \_ => myShell
+                  Exit => Quit "Done"
+
+partial
+startShell : IO (Maybe String)
+startShell = run forever myShell
+
